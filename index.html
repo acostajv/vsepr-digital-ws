@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Discovering Molecular Shapes — VSEPR Activity Bundle</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500;600&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ── TOKENS ── */
+:root{
+  --ink:#0e0c1a;
+  --ink2:#2d2650;
+  --muted:#7a6fa8;
+  --rule:#e2ddf4;
+  --bg:#faf9ff;
+  --surface:#ffffff;
+  --teal:#00b8a0;
+  --teal-light:#e0faf6;
+  --violet:#5b3fa0;
+  --violet-light:#ede8ff;
+  --amber:#c9900a;
+  --amber-light:#fff8e1;
+  --coral:#d94f2b;
+  --coral-light:#fff0ec;
+  --sky:#1a7fc4;
+  --sky-light:#e8f4ff;
+  --green:#2f855a;
+  --green-light:#f0fff4;
+  --nav-h:64px;
+}
+
+/* ── RESET ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;min-height:100vh;overflow-x:hidden}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:100;
+  background:rgba(14,12,26,.95);backdrop-filter:blur(12px);
+  display:flex;align-items:center;padding:0 40px;gap:20px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.nav-wordmark{font-family:'Instrument Serif',serif;font-size:18px;color:#fff;letter-spacing:.01em}
+.nav-wordmark em{color:var(--teal);font-style:normal}
+.nav-spacer{flex:1}
+.nav-chip{font-family:'DM Mono',monospace;font-size:10px;background:rgba(0,184,160,.15);border:1px solid rgba(0,184,160,.35);color:var(--teal);padding:3px 10px;border-radius:20px;letter-spacing:.06em}
+.nav-tpt{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.5);text-decoration:none;transition:color .2s}
+.nav-tpt:hover{color:var(--teal)}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+  padding:calc(var(--nav-h) + 60px) 40px 80px;
+  position:relative;overflow:hidden;
+  background:var(--ink);
+}
+.hero-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(0,184,160,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,184,160,.04) 1px,transparent 1px);
+  background-size:48px 48px;
+}
+.hero-glow{
+  position:absolute;top:-200px;right:-200px;width:700px;height:700px;
+  background:radial-gradient(circle,rgba(91,63,160,.25) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-glow2{
+  position:absolute;bottom:-100px;left:-100px;width:500px;height:500px;
+  background:radial-gradient(circle,rgba(0,184,160,.15) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-inner{max-width:900px;margin:0 auto;position:relative;z-index:1}
+.hero-eyebrow{
+  font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--teal);margin-bottom:24px;display:flex;align-items:center;gap:12px;
+}
+.hero-eyebrow::before{content:'';width:32px;height:1px;background:var(--teal)}
+.hero-h1{
+  font-family:'Instrument Serif',serif;font-size:clamp(42px,7vw,80px);
+  color:#fff;line-height:1.05;margin-bottom:12px;
+}
+.hero-h1 span{color:var(--teal)}
+.hero-sub{
+  font-size:18px;color:rgba(255,255,255,.5);max-width:560px;
+  line-height:1.7;margin-bottom:40px;font-weight:300;
+}
+.hero-meta{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:48px}
+.hero-badge{
+  display:flex;align-items:center;gap:8px;
+  font-family:'DM Mono',monospace;font-size:12px;color:rgba(255,255,255,.6);
+}
+.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);flex-shrink:0}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+.btn-primary{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--teal);color:#fff;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;
+  padding:12px 24px;border-radius:6px;text-decoration:none;letter-spacing:.04em;
+  transition:all .2s;border:none;cursor:pointer;
+}
+.btn-primary:hover{background:#009e8a;transform:translateY(-1px)}
+.btn-ghost{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);
+  font-family:'DM Mono',monospace;font-size:12px;
+  padding:12px 24px;border-radius:6px;text-decoration:none;letter-spacing:.04em;
+  border:1px solid rgba(255,255,255,.12);transition:all .2s;
+}
+.btn-ghost:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.25)}
+.hero-scroll{
+  position:absolute;bottom:32px;left:50%;transform:translateX(-50%);
+  font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,.25);
+  letter-spacing:.1em;display:flex;flex-direction:column;align-items:center;gap:8px;
+}
+.hero-scroll::after{content:'';width:1px;height:40px;background:rgba(255,255,255,.15)}
+
+/* ── SECTION ── */
+.section{padding:100px 40px;max-width:1100px;margin:0 auto}
+.section-label{
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--teal);margin-bottom:16px;
+}
+.section-h2{font-family:'Instrument Serif',serif;font-size:clamp(28px,4vw,44px);color:var(--ink);margin-bottom:12px}
+.section-intro{font-size:16px;color:var(--muted);max-width:600px;line-height:1.75;margin-bottom:56px}
+
+/* ── VERSION TABS ── */
+.version-tabs{display:flex;gap:0;margin-bottom:40px;border:1.5px solid var(--rule);border-radius:8px;overflow:hidden;width:fit-content}
+.vtab{
+  padding:10px 28px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;
+  background:var(--surface);color:var(--muted);border:none;transition:all .2s;letter-spacing:.04em;
+}
+.vtab.active{background:var(--violet);color:#fff}
+.vtab:first-child{border-right:1.5px solid var(--rule)}
+
+/* ── FILE CARDS ── */
+.files-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.file-card{
+  background:var(--surface);border:1.5px solid var(--rule);border-radius:10px;
+  padding:18px 20px;display:flex;align-items:flex-start;gap:14px;
+  transition:all .25s;position:relative;overflow:hidden;
+}
+.file-card:hover{border-color:var(--teal);box-shadow:0 4px 20px rgba(0,184,160,.1);transform:translateY(-2px)}
+.file-card::before{
+  content:'';position:absolute;top:0;left:0;width:3px;height:100%;
+  background:var(--card-accent,var(--teal));
+}
+.file-icon{
+  width:40px;height:40px;border-radius:8px;
+  background:var(--card-bg,var(--teal-light));
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.file-info{flex:1;min-width:0}
+.file-name{font-family:'DM Mono',monospace;font-size:11.5px;color:var(--ink);font-weight:600;margin-bottom:3px;word-break:break-all}
+.file-desc{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:10px}
+.file-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.file-type{font-family:'DM Mono',monospace;font-size:9.5px;background:var(--card-bg,var(--teal-light));color:var(--card-accent,var(--teal));padding:2px 7px;border-radius:3px;letter-spacing:.05em}
+.file-version{font-family:'DM Mono',monospace;font-size:9.5px;color:var(--muted)}
+.download-btn{
+  display:inline-flex;align-items:center;gap:5px;margin-top:10px;
+  font-family:'DM Mono',monospace;font-size:10.5px;font-weight:600;
+  color:var(--card-accent,var(--teal));background:var(--card-bg,var(--teal-light));
+  padding:5px 12px;border-radius:4px;text-decoration:none;
+  border:1px solid transparent;transition:all .2s;
+}
+.download-btn:hover{border-color:var(--card-accent,var(--teal));background:transparent}
+.file-card[data-type="html"]{--card-accent:var(--sky);--card-bg:var(--sky-light)}
+.file-card[data-type="grader"]{--card-accent:var(--violet);--card-bg:var(--violet-light)}
+.file-card[data-type="key"]{--card-accent:var(--amber);--card-bg:var(--amber-light)}
+.file-card[data-type="ticket"]{--card-accent:var(--coral);--card-bg:var(--coral-light)}
+.file-card[data-type="doc"]{--card-accent:var(--green);--card-bg:var(--green-light)}
+
+/* ── CHANGELOG ── */
+.changelog{background:var(--surface);border:1.5px solid var(--rule);border-radius:12px;overflow:hidden}
+.changelog-head{
+  background:var(--ink);padding:20px 28px;
+  font-family:'DM Mono',monospace;font-size:12px;color:rgba(255,255,255,.6);
+  display:flex;align-items:center;gap:10px;
+}
+.changelog-head strong{color:#fff}
+.changelog-body{padding:0}
+.changelog-entry{padding:20px 28px;border-bottom:1px solid var(--rule);display:grid;grid-template-columns:140px 1fr;gap:20px;align-items:start}
+.changelog-entry:last-child{border-bottom:none}
+.cl-ver{font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--violet)}
+.cl-date{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px}
+.cl-tag{display:inline-block;font-family:'DM Mono',monospace;font-size:9px;padding:2px 7px;border-radius:3px;margin-right:6px;margin-bottom:4px;letter-spacing:.06em}
+.cl-tag.new{background:rgba(47,133,90,.12);color:var(--green)}
+.cl-tag.fix{background:rgba(197,48,48,.08);color:#c53030}
+.cl-tag.update{background:rgba(91,63,160,.1);color:var(--violet)}
+.cl-items{display:flex;flex-direction:column;gap:6px}
+.cl-item{font-size:13.5px;color:var(--ink2);line-height:1.5}
+.cl-item::before{content:'→ ';color:var(--muted);font-family:'DM Mono',monospace;font-size:11px}
+
+/* ── HOW IT WORKS ── */
+.steps-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px}
+.step-card{background:var(--surface);border:1.5px solid var(--rule);border-radius:10px;padding:24px 22px}
+.step-num{font-family:'Instrument Serif',serif;font-size:48px;color:var(--rule);line-height:1;margin-bottom:12px}
+.step-title{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:6px}
+.step-desc{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* ── FEATURE STRIP ── */
+.features{background:var(--ink);padding:80px 40px}
+.features-inner{max-width:1100px;margin:0 auto}
+.features-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px;margin-top:48px}
+.feat{padding:24px;border:1px solid rgba(255,255,255,.07);border-radius:10px;background:rgba(255,255,255,.03)}
+.feat-icon{font-size:24px;margin-bottom:12px}
+.feat-title{font-size:14px;font-weight:600;color:#fff;margin-bottom:6px}
+.feat-desc{font-size:12.5px;color:rgba(255,255,255,.45);line-height:1.6}
+
+/* ── FOOTER ── */
+footer{background:var(--ink);border-top:1px solid rgba(255,255,255,.06);padding:32px 40px;text-align:center}
+.footer-text{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.25)}
+.footer-text a{color:rgba(255,255,255,.4);text-decoration:none;transition:color .2s}
+.footer-text a:hover{color:var(--teal)}
+
+/* ── UTILITY ── */
+.divider{width:100%;height:1px;background:var(--rule);margin:0}
+.hidden{display:none}
+@media(max-width:680px){
+  nav{padding:0 20px}
+  .hero,.section{padding-left:20px;padding-right:20px}
+  .changelog-entry{grid-template-columns:1fr;gap:8px}
+  .features{padding:60px 20px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-wordmark">⬡ <em>VSEPR</em> Discovery</div>
+  <div class="nav-spacer"></div>
+  <span class="nav-chip">v1.0 · March 2026</span>
+  <a href="#downloads" class="nav-tpt">↓ Downloads</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Chemistry Resource Bundle</div>
+    <h1 class="hero-h1">Discovering<br/>Molecular <span>Shapes</span></h1>
+    <p class="hero-sub">A complete VSEPR activity with interactive digital worksheets, auto-graders, answer keys, and teacher support documents — for Honors and General Chemistry.</p>
+    <div class="hero-meta">
+      <div class="hero-badge"><div class="hero-badge-dot"></div>Honors & General Chemistry versions</div>
+      <div class="hero-badge"><div class="hero-badge-dot"></div>13 files included</div>
+      <div class="hero-badge"><div class="hero-badge-dot"></div>Chrome · Works offline</div>
+      <div class="hero-badge"><div class="hero-badge-dot"></div>PhET Molecule Shapes</div>
+    </div>
+    <div class="hero-cta">
+      <a href="#downloads" class="btn-primary">↓ Download All Files</a>
+      <a href="#how-it-works" class="btn-ghost">How it works</a>
+    </div>
+  </div>
+  <div class="hero-scroll">SCROLL</div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="features-inner">
+    <div class="section-label" style="color:var(--teal)">What's included</div>
+    <h2 class="section-h2" style="color:#fff;margin-bottom:0">Everything you need to run this activity</h2>
+    <div class="features-grid">
+      <div class="feat"><div class="feat-icon">📄</div><div class="feat-title">Interactive Worksheets</div><div class="feat-desc">Canvas drawing on Lewis structures, PhET discovery tables, auto-save, cross-device progress export.</div></div>
+      <div class="feat"><div class="feat-icon">🔧</div><div class="feat-title">Auto-Graders</div><div class="feat-desc">Drag-and-drop student submissions. Auto-scores geometry and angles. Manual scoring for drawings and written questions. CSV export.</div></div>
+      <div class="feat"><div class="feat-icon">📋</div><div class="feat-title">Answer Keys</div><div class="feat-desc">Complete discovery table answers plus model written responses for every question — for teacher use only.</div></div>
+      <div class="feat"><div class="feat-icon">📝</div><div class="feat-title">Exit Tickets</div><div class="feat-desc">Printable paper exit ticket with 4–5 new molecules. Students draw Lewis structures and identify geometry. Includes answer key.</div></div>
+      <div class="feat"><div class="feat-icon">📖</div><div class="feat-title">Teacher Guide</div><div class="feat-desc">Day-by-day implementation plan, grader walkthrough, NGSS and AP Chemistry alignment, tips and troubleshooting.</div></div>
+      <div class="feat"><div class="feat-icon">👤</div><div class="feat-title">Student Quick-Start</div><div class="feat-desc">1-page two-column reference for saving, submitting, drawing tools, and section overview.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<div class="divider"></div>
+<div id="how-it-works">
+<div class="section">
+  <div class="section-label">How it works</div>
+  <h2 class="section-h2">From download to graded</h2>
+  <p class="section-intro">No login, no server, no installation. The worksheet is a single HTML file that runs entirely in Chrome.</p>
+  <div class="steps-grid">
+    <div class="step-card"><div class="step-num">01</div><div class="step-title">Post to Google Classroom</div><div class="step-desc">Upload the HTML file as an attachment. Students download and open in Chrome — that's it.</div></div>
+    <div class="step-card"><div class="step-num">02</div><div class="step-title">Students work through activity</div><div class="step-desc">Draw Lewis structures, use PhET, fill in discovery tables, answer written questions. Auto-save keeps work in browser.</div></div>
+    <div class="step-card"><div class="step-num">03</div><div class="step-title">Students submit</div><div class="step-desc">Click "⬇ Submit Work" — downloads a snapshot HTML file. Turn in via Google Classroom or email.</div></div>
+    <div class="step-card"><div class="step-num">04</div><div class="step-title">Open the grader</div><div class="step-desc">Drag all student files onto the grader at once. Auto-scores geometry, angles, and MC. Export CSV for gradebook.</div></div>
+  </div>
+</div>
+</div>
+
+<!-- DOWNLOADS -->
+<div class="divider"></div>
+<div id="downloads">
+<div class="section">
+  <div class="section-label">Downloads</div>
+  <h2 class="section-h2">Latest versions — all files</h2>
+  <p class="section-intro">This page always serves the most current version. Bookmark it — when files are updated you'll find the new version here automatically.</p>
+
+  <!-- Version tabs -->
+  <div class="version-tabs">
+    <button class="vtab active" onclick="showVersion('honors',this)">Honors Chemistry</button>
+    <button class="vtab" onclick="showVersion('genchem',this)">General Chemistry</button>
+  </div>
+
+  <!-- HONORS -->
+  <div id="files-honors">
+    <div class="files-grid">
+      <div class="file-card" data-type="html">
+        <div class="file-icon">📄</div>
+        <div class="file-info">
+          <div class="file-name">VSEPR_Worksheet_Honors.html</div>
+          <div class="file-desc">Interactive digital worksheet — 7 sections, 10 molecules including expanded octets (SF₆, BrF₅, XeF₄, PCl₅, ClF₃).</div>
+          <div class="file-meta"><span class="file-type">HTML</span><span class="file-version">v1.0</span></div>
+          <a class="download-btn" href="VSEPR_Worksheet_Honors.html" download>⬇ Download</a>
+        </div>
+      </div>
+      <div class="file-card" data-type="grader">
+        <div class="file-icon">🔧</div>
+        <div class="file-info">
+          <div class="file-name">VSEPR_Grader_Honors.html</div>
+          <div class="file-desc">Auto-grader — drag-and-drop student submissions, auto-scores discovery tables and MC, CSV export. Honors version.</div>
+          <div class="file-meta"><span class="file-type">HTML</span><span class="file-version">v1.0</span></div>
+          <a class="download-btn" href="VSEPR_Grader_Honors.html" download>⬇ Download</a>
+        </div>
+      </div>
+      <div class="file-card" data-type="key">
+        <div class="file-icon">📋</div>
+        <div class="file-info">
+          <div class="file-name">VSEPR_Answer_Key_Honors.docx</div>
+          <div class="file-desc">Complete answer key — all discovery table entries and model answers for every written question. Honors version.</div>
+          <div class="file-meta"><span class="file-type">Word</span><span class="file-version">v1.0</span></div>
+          <a class="download-btn" href="VSEPR_Answer_Key_Honors.docx" download>⬇ Download</a>
+        </div>
+      </div>
+      <div class="file-card" data-type="ticket">
+        <div class="file-icon">📝</div>
+        <div class="file-info">
+          <div class="file-name">VSEPR_Exit_Ticket_Honors.docx</div>
+          <div class="file-desc">Printable paper exit ticket — 5 new molecules (CS₂, CCl₄, PH₃, H₂S, ICl₃). Students draw Lewis structures and identify geometry.</div>
+          <div class="file-meta"><span class="file-type">Word</span><span class="file-version">v1.0</span></div>
+          <a class="download-btn" href="VSEPR_Exit_Ticket_Honors.docx" download>⬇ Download</a>
+        </div>
+      </div>
+      <div class="file-card" data-type="key">
+        <div class="file-icon">🔑</div>
+        <div class="file-info">
+          <div class="file-name">VSEPR_Exit_Ticket_Key_Honors.docx</div>
+          <div class="file-desc">Exit ticket answer key — electron geometry, molecular geometry, bond angles, electron counts for all 5 molecules.</div>
+          <div class="file-meta"><span class="file-type">Word</span><span class="file-version">v1.0</span></div>
+          <a class="download-btn" href="VSEPR_Exit_Ticket_Key_Honors.docx" download>⬇ Download</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GENCHEM -->
+  <div id="files-genchem" class="hidden">
+    <div class="files-grid">
+      <div class="file-card" data-type="html">
+        <div class="file-icon">📄</div>
+        <div class="file-info">
+          <div class="file-name">VSEPR_Worksheet_GenChem.html</div>
+          <div class="file-desc">Interactive digital worksheet — 6 sections, 5 molecules (≤4 electron groups). Linear, trigonal planar, bent, tetrahedral, trigonal pyramidal.</div>
+          <div class="file-meta"><span class="file-type">HTML</span><span class="file-version">v1.0</span></div>
+          <a class="download-btn" href="VSEPR_Worksheet_GenChem.html" download>⬇ Download</a>
+        </div>
+      </div>
+      <div class="file-card" data-type="grader">
+        <div class="file-icon">🔧</div>
+        <div class="file-info">
+          <div class="file-name">VSEPR_Grader_GenChem.html</div>
+          <div class="file-desc">Auto-grader — General Chemistry version. Scoped to 5 molecules and GenChem question set.</div>
+          <div class="file-meta"><span class="file-type">HTML</span><span class="file-version">v1.0</span></div>
+          <a class="download-btn" href="VSEPR_Grader_GenChem.html" download>⬇ Download</a>
+        </div>
+      </div>
+      <div class="file-card" data-type="key">
+        <div class="file-icon">📋</div>
+        <div class="file-info">
+          <div class="file-name">VSEPR_Answer_Key_GenChem.docx</div>
+          <div class="file-desc">Complete answer key — discovery table entries and model answers for written questions. General Chemistry version.</div>
+          <div class="file-meta"><span class="file-type">Word</span><span class="file-version">v1.0</span></div>
+          <a class="download-btn" href="VSEPR_Answer_Key_GenChem.docx" download>⬇ Download</a>
+        </div>
+      </div>
+      <div class="file-card" data-type="ticket">
+        <div class="file-icon">📝</div>
+        <div class="file-info">
+          <div class="file-name">VSEPR_Exit_Ticket_GenChem.docx</div>
+          <div class="file-desc">Printable paper exit ticket — 4 molecules (CS₂, CCl₄, PH₃, H₂S). All within 4 electron groups.</div>
+          <div class="file-meta"><span class="file-type">Word</span><span class="file-version">v1.0</span></div>
+          <a class="download-btn" href="VSEPR_Exit_Ticket_GenChem.docx" download>⬇ Download</a>
+        </div>
+      </div>
+      <div class="file-card" data-type="key">
+        <div class="file-icon">🔑</div>
+        <div class="file-info">
+          <div class="file-name">VSEPR_Exit_Ticket_Key_GenChem.docx</div>
+          <div class="file-desc">Exit ticket answer key — electron geometry, molecular geometry, bond angles, electron counts for all 4 molecules.</div>
+          <div class="file-meta"><span class="file-type">Word</span><span class="file-version">v1.0</span></div>
+          <a class="download-btn" href="VSEPR_Exit_Ticket_Key_GenChem.docx" download>⬇ Download</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHARED FILES -->
+  <div style="margin-top:28px">
+    <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Shared — Both Versions</div>
+    <div class="files-grid">
+      <div class="file-card" data-type="doc">
+        <div class="file-icon">📖</div>
+        <div class="file-info">
+          <div class="file-name">VSEPR_Teacher_Guide.docx</div>
+          <div class="file-desc">Full implementation guide — day-by-day plan, grader walkthrough, NGSS/AP alignment, tips and troubleshooting.</div>
+          <div class="file-meta"><span class="file-type">Word</span><span class="file-version">v1.0</span></div>
+          <a class="download-btn" href="VSEPR_Teacher_Guide.docx" download>⬇ Download</a>
+        </div>
+      </div>
+      <div class="file-card" data-type="doc">
+        <div class="file-icon">👤</div>
+        <div class="file-info">
+          <div class="file-name">VSEPR_Student_Quick_Start.docx</div>
+          <div class="file-desc">1-page student reference card — saving, submitting, drawing tools, sections at a glance, quick fixes.</div>
+          <div class="file-meta"><span class="file-type">Word</span><span class="file-version">v1.0</span></div>
+          <a class="download-btn" href="VSEPR_Student_Quick_Start.docx" download>⬇ Download</a>
+        </div>
+      </div>
+      <div class="file-card" data-type="doc">
+        <div class="file-icon">📦</div>
+        <div class="file-info">
+          <div class="file-name">VSEPR_Bundle_README.docx</div>
+          <div class="file-desc">Bundle overview — all 13 files described, 5-minute setup guide, which version to use.</div>
+          <div class="file-meta"><span class="file-type">Word</span><span class="file-version">v1.0</span></div>
+          <a class="download-btn" href="VSEPR_Bundle_README.docx" download>⬇ Download</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- CHANGELOG -->
+<div class="divider"></div>
+<div class="section">
+  <div class="section-label">Version history</div>
+  <h2 class="section-h2">Changelog</h2>
+  <p class="section-intro">All updates are documented here. Bookmark this page to get new versions automatically.</p>
+  <div class="changelog">
+    <div class="changelog-head"><strong>Version History</strong> &nbsp;·&nbsp; Most recent first</div>
+    <div class="changelog-body">
+      <div class="changelog-entry">
+        <div>
+          <div class="cl-ver">v1.0</div>
+          <div class="cl-date">March 2026</div>
+        </div>
+        <div class="cl-items">
+          <div style="margin-bottom:8px"><span class="cl-tag new">NEW</span>Initial release</div>
+          <div class="cl-item">Honors and General Chemistry versions with separate graders and answer keys</div>
+          <div class="cl-item">Q 2.1 electron group counting practice with PCl₃ and SO₂ Lewis structures</div>
+          <div class="cl-item">Lewis Structure Guide drawer with periodic table SVG and step-by-step walkthrough</div>
+          <div class="cl-item">Section 3 BF₃ incomplete octet callout and Section 3→4 transition note</div>
+          <div class="cl-item">Q 5.2 ClF₃ T-shape question added (Honors); Q 5.3 updated with hint</div>
+          <div class="cl-item">Unified Load Progress button accepts both .json and .html files</div>
+          <div class="cl-item">Print dropdown with blank and completed options</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p class="footer-text">Discovering Molecular Shapes — VSEPR Activity Bundle &nbsp;·&nbsp; Chemistry Resource &nbsp;·&nbsp; <a href="#downloads">↑ Back to downloads</a></p>
+</footer>
+
+<script>
+function showVersion(v, btn) {
+  document.querySelectorAll('.vtab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('files-honors').classList.toggle('hidden', v !== 'honors');
+  document.getElementById('files-genchem').classList.toggle('hidden', v !== 'genchem');
+}
+
+// Smooth reveal on scroll
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.style.opacity = '1'; });
+}, {threshold:0.05});
+document.querySelectorAll('.file-card,.step-card,.feat').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transition = 'opacity .4s ease';
+  observer.observe(el);
+});
+</script>
+</body>
+</html>
