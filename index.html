@@ -209,7 +209,33 @@ nav{
 .feat-title{font-size:14px;font-weight:600;color:#fff;margin-bottom:6px}
 .feat-desc{font-size:12.5px;color:rgba(255,255,255,.45);line-height:1.6}
 
-/* ── FOOTER ── */
+/* ── FEEDBACK ── */
+.feedback-wrap{background:var(--ink);padding:80px 40px}
+.feedback-inner{max-width:860px;margin:0 auto}
+.feedback-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:48px}
+@media(max-width:680px){.feedback-grid{grid-template-columns:1fr}}
+.feedback-card{background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.08);border-radius:10px;padding:24px}
+.feedback-card:hover{border-color:rgba(0,184,160,.3)}
+.fb-icon{font-size:22px;margin-bottom:10px}
+.fb-type{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--teal);margin-bottom:6px}
+.fb-desc{font-size:12.5px;color:rgba(255,255,255,.4);line-height:1.6;margin-bottom:16px}
+.fb-input,.fb-textarea{
+  width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  border-radius:5px;padding:9px 12px;font-family:'Sora',sans-serif;font-size:13px;
+  color:rgba(255,255,255,.85);resize:vertical;transition:border-color .2s;
+}
+.fb-input:focus,.fb-textarea:focus{outline:none;border-color:var(--teal)}
+.fb-input::placeholder,.fb-textarea::placeholder{color:rgba(255,255,255,.2)}
+.fb-textarea{min-height:100px}
+.fb-submit{
+  margin-top:10px;background:var(--teal);color:#fff;border:none;
+  font-family:'DM Mono',monospace;font-size:11px;font-weight:700;
+  padding:8px 20px;border-radius:5px;cursor:pointer;letter-spacing:.04em;transition:all .2s;
+}
+.fb-submit:hover{background:#009e8a}
+.fb-thanks{display:none;margin-top:10px;font-family:'DM Mono',monospace;font-size:11px;color:var(--teal)}
+
+
 footer{background:var(--ink);border-top:1px solid rgba(255,255,255,.06);padding:32px 40px;text-align:center}
 .footer-text{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.25)}
 .footer-text a{color:rgba(255,255,255,.4);text-decoration:none;transition:color .2s}
@@ -254,6 +280,7 @@ footer{background:var(--ink);border-top:1px solid rgba(255,255,255,.06);padding:
     <div class="hero-cta">
       <a href="#downloads" class="btn-primary">↓ Download All Files</a>
       <a href="#how-it-works" class="btn-ghost">How it works</a>
+      <a href="#feedback" class="btn-ghost">Leave feedback</a>
     </div>
   </div>
   <div class="hero-scroll">SCROLL</div>
@@ -472,7 +499,66 @@ footer{background:var(--ink);border-top:1px solid rgba(255,255,255,.06);padding:
   </div>
 </div>
 
+<!-- FEEDBACK -->
+<div class="divider"></div>
+<div class="feedback-wrap" id="feedback">
+  <div class="feedback-inner">
+    <div class="section-label" style="color:var(--teal)">Feedback</div>
+    <h2 class="section-h2" style="color:#fff;margin-bottom:8px">Help improve this resource</h2>
+    <p style="color:rgba(255,255,255,.4);font-size:14px;max-width:560px;line-height:1.7">Found a bug? Have a suggestion? Love something? All feedback is welcome and actually gets read.</p>
+    <div class="feedback-grid">
+
+      <!-- Bug / Fix -->
+      <div class="feedback-card">
+        <div class="fb-icon">🐛</div>
+        <div class="fb-type">Bug Report / Fix Needed</div>
+        <div class="fb-desc">Something isn't working correctly — wrong answer, broken button, display issue, or unclear instruction.</div>
+        <textarea class="fb-textarea" id="fb-bug" placeholder="Describe what happened and which file / section it's in…"></textarea>
+        <input class="fb-input" id="fb-bug-email" type="email" placeholder="Your email (optional — for follow-up)" style="margin-top:8px"/>
+        <button class="fb-submit" onclick="submitFeedback('bug')">Send Bug Report</button>
+        <div class="fb-thanks" id="thanks-bug">✓ Received — thank you!</div>
+      </div>
+
+      <!-- Improvement -->
+      <div class="feedback-card">
+        <div class="fb-icon">💡</div>
+        <div class="fb-type">Suggestion / Improvement</div>
+        <div class="fb-desc">An idea for a new question, a better explanation, a missing molecule, a workflow improvement, or anything else that could make this better.</div>
+        <textarea class="fb-textarea" id="fb-improve" placeholder="What would you add, change, or improve?"></textarea>
+        <input class="fb-input" id="fb-improve-email" type="email" placeholder="Your email (optional)" style="margin-top:8px"/>
+        <button class="fb-submit" onclick="submitFeedback('improve')">Send Suggestion</button>
+        <div class="fb-thanks" id="thanks-improve">✓ Received — thank you!</div>
+      </div>
+
+      <!-- Positive -->
+      <div class="feedback-card">
+        <div class="fb-icon">⭐</div>
+        <div class="fb-type">What's Working Well</div>
+        <div class="fb-desc">A question that landed well, a section students found engaging, a feature that saved you time — anything worth keeping or doing more of.</div>
+        <textarea class="fb-textarea" id="fb-positive" placeholder="What worked well for your students or for you?"></textarea>
+        <input class="fb-input" id="fb-positive-email" type="email" placeholder="Your email (optional)" style="margin-top:8px"/>
+        <button class="fb-submit" onclick="submitFeedback('positive')">Send Feedback</button>
+        <div class="fb-thanks" id="thanks-positive">✓ Received — thank you!</div>
+      </div>
+
+      <!-- Other -->
+      <div class="feedback-card">
+        <div class="fb-icon">💬</div>
+        <div class="fb-type">General / Other</div>
+        <div class="fb-desc">A question about using the files, a comment about how the activity went, or anything else that doesn't fit the other categories.</div>
+        <textarea class="fb-textarea" id="fb-other" placeholder="Anything else on your mind…"></textarea>
+        <input class="fb-input" id="fb-other-email" type="email" placeholder="Your email (optional — required if you'd like a reply)" style="margin-top:8px"/>
+        <button class="fb-submit" onclick="submitFeedback('other')">Send Message</button>
+        <div class="fb-thanks" id="thanks-other">✓ Received — thank you!</div>
+      </div>
+
+    </div>
+    <p style="margin-top:24px;font-family:'DM Mono',monospace;font-size:10.5px;color:rgba(255,255,255,.2)">Feedback is sent via Formspree. No account required. Email is only used if you'd like a response.</p>
+  </div>
+</div>
+
 <!-- FOOTER -->
+
 <footer>
   <p class="footer-text">Discovering Molecular Shapes — VSEPR Activity Bundle &nbsp;·&nbsp; Chemistry Resource &nbsp;·&nbsp; <a href="#downloads">↑ Back to downloads</a></p>
 </footer>
@@ -483,6 +569,40 @@ function showVersion(v, btn) {
   btn.classList.add('active');
   document.getElementById('files-honors').classList.toggle('hidden', v !== 'honors');
   document.getElementById('files-genchem').classList.toggle('hidden', v !== 'genchem');
+}
+
+// Feedback — uses Formspree (replace YOUR_FORM_ID with actual Formspree endpoint)
+// To set up: go to formspree.io, create a free form, paste the form ID below
+const FORMSPREE_ID = 'xqeywwqy';
+
+async function submitFeedback(type) {
+  const msg  = document.getElementById('fb-' + type).value.trim();
+  const email = document.getElementById('fb-' + type + '-email').value.trim();
+  if (!msg) { alert('Please enter a message before sending.'); return; }
+
+  const btn = event.target;
+  btn.textContent = 'Sending…'; btn.disabled = true;
+
+  try {
+    if (FORMSPREE_ID === 'YOUR_FORM_ID') {
+      // Dev mode — just show thanks without sending
+      await new Promise(r => setTimeout(r, 600));
+    } else {
+      await fetch('https://formspree.io/f/' + FORMSPREE_ID, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+        body: JSON.stringify({ type, message: msg, email: email || '(not provided)', _subject: 'VSEPR Bundle Feedback — ' + type })
+      });
+    }
+    document.getElementById('fb-' + type).value = '';
+    document.getElementById('fb-' + type + '-email').value = '';
+    document.getElementById('thanks-' + type).style.display = 'block';
+    setTimeout(() => document.getElementById('thanks-' + type).style.display = 'none', 4000);
+  } catch(e) {
+    alert('Something went wrong. Try again or email directly.');
+  }
+  btn.textContent = { bug: 'Send Bug Report', improve: 'Send Suggestion', positive: 'Send Feedback', other: 'Send Message' }[type];
+  btn.disabled = false;
 }
 
 // Smooth reveal on scroll
