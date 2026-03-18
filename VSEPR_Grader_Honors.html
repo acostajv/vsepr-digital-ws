@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>VSEPR Grader — Teacher Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --navy:   #0f1e35;
+  --teal:   #00b8a0;
+  --amber:  #f5a623;
+  --red:    #e53e3e;
+  --green:  #38a169;
+  --cream:  #faf7f2;
+  --paper:  #fff9f0;
+  --muted:  #7a8899;
+  --rule:   #e2ddd6;
+  --shadow: 0 2px 12px rgba(15,30,53,0.10);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--navy); }
+
+/* ── LAYOUT ─────────────────────────────────────────────────────────────── */
+.app { display: grid; grid-template-rows: 56px 1fr; height: 100vh; }
+.topbar { background: var(--navy); display: flex; align-items: center; padding: 0 20px; gap: 16px; }
+.topbar-title { font-family: 'DM Serif Display', serif; color: #fff; font-size: 20px; }
+.topbar-sub { color: rgba(255,255,255,0.45); font-size: 12px; font-family: 'DM Mono', monospace; }
+.topbar-spacer { flex: 1; }
+.topbar-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); font-family: 'DM Mono', monospace; font-size: 11px; padding: 5px 12px; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+.topbar-btn:hover { background: var(--teal); border-color: var(--teal); color: #fff; }
+.topbar-btn.amber { background: var(--amber); border-color: var(--amber); color: var(--navy); font-weight: 600; }
+.topbar-btn.amber:hover { opacity: 0.88; }
+
+.body { display: grid; grid-template-columns: 280px 1fr; overflow: hidden; }
+
+/* ── SIDEBAR ─────────────────────────────────────────────────────────────── */
+.sidebar { background: var(--navy); display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid rgba(255,255,255,0.06); }
+.sidebar-head { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.sidebar-head h3 { color: rgba(255,255,255,0.9); font-size: 12px; font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; }
+.student-count { color: var(--teal); font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; margin-bottom: 2px; }
+.drop-zone { margin: 12px; border: 2px dashed rgba(0,184,160,0.35); border-radius: 8px; padding: 16px 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
+.drop-zone:hover, .drop-zone.drag-over { border-color: var(--teal); background: rgba(0,184,160,0.06); }
+.drop-zone input { display: none; }
+.drop-icon { font-size: 22px; margin-bottom: 6px; }
+.drop-label { color: rgba(255,255,255,0.55); font-size: 12px; line-height: 1.5; }
+.drop-label strong { color: var(--teal); }
+.student-list { flex: 1; overflow-y: auto; padding: 8px 0; }
+.student-item { display: flex; align-items: center; gap: 10px; padding: 9px 14px; cursor: pointer; transition: background 0.15s; border-left: 3px solid transparent; }
+.student-item:hover { background: rgba(255,255,255,0.05); }
+.student-item:hover .del-btn { opacity: 1; }
+.del-btn { opacity: 0; background: none; border: none; color: rgba(229,62,62,0.7); font-size: 14px; cursor: pointer; padding: 2px 4px; border-radius: 3px; transition: all 0.15s; flex-shrink: 0; line-height: 1; }
+.del-btn:hover { color: #fc8181; background: rgba(229,62,62,0.15); }
+.student-item.active { background: rgba(0,184,160,0.12); border-left-color: var(--teal); }
+.student-avatar { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.7); flex-shrink: 0; }
+.student-info { flex: 1; min-width: 0; }
+.student-name { color: rgba(255,255,255,0.9); font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.student-date { color: rgba(255,255,255,0.35); font-size: 10px; font-family: 'DM Mono', monospace; }
+.score-chip { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 10px; flex-shrink: 0; }
+.score-chip.good { background: rgba(56,161,105,0.2); color: #68d391; }
+.score-chip.mid  { background: rgba(245,166,35,0.2); color: var(--amber); }
+.score-chip.low  { background: rgba(229,62,62,0.2); color: #fc8181; }
+.score-chip.na   { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.3); }
+.sidebar-csv { padding: 10px 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+.csv-btn { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); font-family: 'DM Mono', monospace; font-size: 11px; padding: 7px; border-radius: 5px; cursor: pointer; transition: all 0.2s; }
+.csv-btn:hover { background: rgba(0,184,160,0.15); border-color: var(--teal); color: var(--teal); }
+
+/* ── MAIN PANEL ─────────────────────────────────────────────────────────── */
+.main { overflow-y: auto; background: var(--cream); }
+.welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 14px; text-align: center; padding: 40px; }
+.welcome-icon { font-size: 48px; }
+.welcome h2 { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--navy); }
+.welcome p { color: var(--muted); font-size: 14px; max-width: 400px; line-height: 1.7; }
+
+/* ── REPORT ─────────────────────────────────────────────────────────────── */
+.report { padding: 24px 28px; max-width: 900px; }
+.report-header { background: var(--navy); border-radius: 10px; padding: 20px 24px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 20px; }
+.report-avatar { width: 46px; height: 46px; border-radius: 50%; background: rgba(0,184,160,0.2); border: 2px solid var(--teal); display: flex; align-items: center; justify-content: center; font-size: 18px; font-family: 'DM Mono', monospace; color: var(--teal); font-weight: 600; flex-shrink: 0; }
+.report-meta { flex: 1; }
+.report-name { font-family: 'DM Serif Display', serif; font-size: 22px; color: #fff; }
+.report-sub { color: rgba(255,255,255,0.45); font-size: 12px; font-family: 'DM Mono', monospace; margin-top: 2px; }
+.score-summary { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+.score-pill { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 20px; padding: 4px 12px; font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.65); }
+.score-pill.total { background: var(--teal); border-color: var(--teal); color: #fff; font-weight: 600; font-size: 13px; }
+.score-pill span { color: #fff; font-weight: 600; }
+
+/* ── SECTION CARDS ─────────────────────────────────────────────────────── */
+.sec-card { background: white; border: 1px solid var(--rule); border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
+.sec-card-head { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--paper); border-bottom: 1px solid var(--rule); cursor: pointer; user-select: none; }
+.sec-card-head:hover { background: #f5f0e8; }
+.sec-num { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; color: var(--teal); background: rgba(0,184,160,0.1); border-radius: 3px; padding: 2px 6px; }
+.sec-title { font-weight: 600; font-size: 14px; flex: 1; }
+.sec-pts { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+.sec-score { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 700; }
+.sec-score.full { color: var(--green); }
+.sec-score.part { color: var(--amber); }
+.sec-score.zero { color: var(--red); }
+.sec-score.manual { color: var(--muted); }
+.sec-chev { color: var(--muted); font-size: 11px; transition: transform 0.2s; }
+.sec-card.open .sec-chev { transform: rotate(180deg); }
+.sec-body { display: none; padding: 16px; }
+.sec-card.open .sec-body { display: block; }
+
+/* ── ANSWER ROWS ─────────────────────────────────────────────────────────── */
+.ans-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 8px; }
+.ans-table th { background: var(--navy); color: #fff; padding: 7px 10px; text-align: left; font-size: 11px; font-family: 'DM Mono', monospace; font-weight: 500; }
+.ans-table td { padding: 7px 10px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+.ans-table tr:last-child td { border-bottom: none; }
+.ans-table tr:nth-child(even) td { background: var(--paper); }
+.mol-label { font-family: 'DM Serif Display', serif; font-size: 15px; color: var(--navy); }
+.student-ans { font-weight: 500; }
+.correct-ans { font-size: 11px; color: var(--muted); }
+.pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-family: 'DM Mono', monospace; font-weight: 600; }
+.pill.✓ { background: rgba(56,161,105,0.12); color: var(--green); }
+.pill.✗ { background: rgba(229,62,62,0.1); color: var(--red); }
+.pill.? { background: rgba(245,166,35,0.1); color: var(--amber); }
+.pill.– { background: rgba(122,136,153,0.1); color: var(--muted); }
+
+/* ── MC ROW ─────────────────────────────────────────────────────────────── */
+.mc-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--rule); }
+.mc-row:last-child { border-bottom: none; }
+.mc-q { font-size: 13px; font-weight: 500; flex: 1; }
+.mc-student { font-family: 'DM Mono', monospace; font-size: 13px; background: var(--paper); padding: 3px 8px; border-radius: 4px; }
+.mc-correct { font-size: 11px; color: var(--muted); }
+
+/* ── WRITTEN Q ─────────────────────────────────────────────────────────── */
+.written-block { margin-bottom: 14px; }
+.written-q { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.written-ans { background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; font-size: 13px; line-height: 1.6; color: var(--navy); white-space: pre-wrap; min-height: 44px; }
+.written-ans.empty { color: var(--muted); font-style: italic; }
+.manual-score { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.manual-score label { font-size: 11px; color: var(--muted); }
+.pts-input { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 600; width: 52px; border: 1px solid var(--rule); border-radius: 4px; padding: 3px 6px; text-align: center; color: var(--navy); background: white; }
+.pts-input:focus { outline: none; border-color: var(--teal); }
+.max-pts { font-size: 11px; color: var(--muted); }
+
+/* ── CANVAS DRAWINGS ─────────────────────────────────────────────────────── */
+.canvas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.canvas-card { border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
+.canvas-card-head { background: var(--paper); padding: 6px 10px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--rule); }
+.canvas-mol { font-family: 'DM Serif Display', serif; font-size: 14px; }
+.canvas-img { width: 100%; display: block; background: white; min-height: 80px; }
+.canvas-img.blank { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 12px; font-style: italic; min-height: 80px; }
+.lewis-score-row { padding: 6px 8px; display: flex; align-items: center; gap: 6px; background: var(--paper); border-top: 1px solid var(--rule); }
+.lewis-score-row label { font-size: 11px; color: var(--muted); flex: 1; }
+.lewis-pts { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 600; width: 40px; border: 1px solid var(--rule); border-radius: 3px; padding: 2px 4px; text-align: center; color: var(--navy); background: white; }
+.lewis-pts:focus { outline: none; border-color: var(--teal); }
+
+/* ── RANK DISPLAY ─────────────────────────────────────────────────────────── */
+.rank-display { display: flex; flex-direction: column; gap: 6px; }
+.rank-row { display: flex; align-items: center; gap: 10px; padding: 7px 12px; background: var(--paper); border: 1px solid var(--rule); border-radius: 5px; }
+.rank-pos { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 700; color: var(--teal); width: 20px; }
+.rank-label { font-size: 13px; flex: 1; }
+
+/* ── PRINT ─────────────────────────────────────────────────────────────── */
+@media print {
+  .sidebar, .topbar { display: none; }
+  .body { display: block; }
+  .main { overflow: visible; }
+  .report { max-width: 100%; padding: 0; }
+  .sec-card.open .sec-body { display: block; }
+  .sec-card:not(.open) .sec-body { display: none; }
+}
+
+/* ── SCROLLBAR ─────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">⬡ VSEPR Grader</div>
+    </div>
+    <div class="topbar-sub">Teacher Tool · Chemistry</div>
+    <div class="topbar-spacer"></div>
+    <button class="topbar-btn" onclick="printReport()">🖨 Print Report</button>
+    <button class="topbar-btn amber" onclick="exportCSV()">⬇ Export Grades CSV</button>
+  </div>
+
+  <div class="body">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-head">
+        <div class="student-count" id="studentCount">0</div>
+        <h3>Students Graded</h3>
+      </div>
+
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" accept=".html" multiple onchange="handleFiles(this.files)"/>
+        <div class="drop-icon">📂</div>
+        <div class="drop-label"><strong>Click or drag</strong> student HTML files here.<br/>Upload one or many at once.</div>
+      </div>
+
+      <div class="student-list" id="studentList"></div>
+
+      <div class="sidebar-csv">
+        <button class="csv-btn" onclick="exportCSV()">⬇ Export all grades as CSV</button>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main" id="mainPanel">
+      <div class="welcome">
+        <div class="welcome-icon">🧪</div>
+        <h2>VSEPR Grading Tool</h2>
+        <p>Upload student HTML submissions using the panel on the left. Each file will be parsed and auto-scored instantly. Written questions and Lewis structure drawings require manual scoring.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════════
+// ANSWER KEY
+// ══════════════════════════════════════════════════════════════════════════
+const MOLECULES = ['h2o','nh3','ch4','co2','bf3','pcl5','sf6','clf3','brf5','xef4'];
+const MOL_LABELS = { h2o:'H₂O', nh3:'NH₃', ch4:'CH₄', co2:'CO₂', bf3:'BF₃', pcl5:'PCl₅', sf6:'SF₆', clf3:'ClF₃', brf5:'BrF₅', xef4:'XeF₄' };
+
+const S1_KEY = {
+  h2o:  { bond:'2', lp:'2', total:'4' },
+  nh3:  { bond:'3', lp:'1', total:'4' },
+  ch4:  { bond:'4', lp:'0', total:'4' },
+  co2:  { bond:'2', lp:'0', total:'2' },
+  bf3:  { bond:'3', lp:'0', total:'3' },
+  pcl5: { bond:'5', lp:'0', total:'5' },
+  sf6:  { bond:'6', lp:'0', total:'6' },
+  clf3: { bond:'3', lp:'2', total:'5' },
+  brf5: { bond:'5', lp:'1', total:'6' },
+  xef4: { bond:'4', lp:'2', total:'6' },
+};
+
+// Acceptable geometry answers (all lowercase, spaces/punctuation stripped)
+const GEO_ALIASES = {
+  linear:              ['linear'],
+  'trigonal planar':   ['trigonalplanar','trig.planar','trigplanar','triangularplanar'],
+  tetrahedral:         ['tetrahedral'],
+  'trigonal pyramidal':['trigonalpyramidal','trig.pyramidal','trigpyramidal','pyramidal','triangularpyramidal'],
+  bent:                ['bent','angular','vshape','vshaped','v-shape','v-shaped'],
+  'trigonal bipyramidal':['trigonalbipyramidal','trig.bipyramidal','trigbipyramidal','tbp','trigbipy','trigonalbipyramid'],
+  't-shaped':          ['tshaped','t-shaped','tshape'],
+  octahedral:          ['octahedral'],
+  'square pyramidal':  ['squarepyramidal','squarepyramid'],
+  'square planar':     ['squareplanar'],
+  seesaw:              ['seesaw','see-saw','seesawshaped'],
+};
+
+// Build reverse alias map
+const GEO_MAP = {};
+Object.entries(GEO_ALIASES).forEach(([canonical, aliases]) => {
+  aliases.forEach(a => { GEO_MAP[a] = canonical; });
+  GEO_MAP[canonical.replace(/[\s\-\.]/g,'')] = canonical;
+});
+
+const DISC_KEY = {
+  co2:  { section:'s3', egeo:'linear',              mgeo:'linear',               angle:'180' },
+  bf3:  { section:'s3', egeo:'trigonal planar',      mgeo:'trigonal planar',      angle:'120' },
+  ch4:  { section:'s4', egeo:'tetrahedral',          mgeo:'tetrahedral',          angle:'109.5' },
+  nh3:  { section:'s4', egeo:'tetrahedral',          mgeo:'trigonal pyramidal',   angle:'107' },
+  h2o:  { section:'s4', egeo:'tetrahedral',          mgeo:'bent',                 angle:'104.5' },
+  pcl5: { section:'s5', egeo:'trigonal bipyramidal', mgeo:'trigonal bipyramidal', angle:'90and120' },
+  clf3: { section:'s5', egeo:'trigonal bipyramidal', mgeo:'t-shaped',             angle:'87.5' },
+  sf6:  { section:'s5', egeo:'octahedral',           mgeo:'octahedral',           angle:'90' },
+  brf5: { section:'s5', egeo:'octahedral',           mgeo:'square pyramidal',     angle:'85' },
+  xef4: { section:'s5', egeo:'octahedral',           mgeo:'square planar',        angle:'90' },
+};
+
+const S6_KEY = {
+  so2: { mgeo:'bent',    angle:'119' },
+  sf4: { mgeo:'seesaw',  angle:'173and102' },
+};
+
+// ── Normalise text for comparison ──────────────────────────────────────────
+function norm(s) {
+  return (s||'').toLowerCase().replace(/[°~≈\s\-\.\,]/g,'');
+}
+
+function checkGeo(student, canonical) {
+  const n = norm(student);
+  if (!n) return 'blank';
+  const resolved = GEO_MAP[n];
+  return resolved === canonical ? 'correct' : 'incorrect';
+}
+
+function checkAngle(student, keyAngle) {
+  const s = norm(student);
+  if (!s) return 'blank';
+  // For dual-angle answers (pcl5, sf4)
+  if (keyAngle.includes('and')) {
+    const parts = keyAngle.split('and');
+    return parts.every(p => s.includes(p) || angleClose(s, p)) ? 'correct' : 'incorrect';
+  }
+  // For single angle: check if student answer contains a number within ±3
+  const keyNum = parseFloat(keyAngle);
+  // Extract all numbers from student answer
+  const nums = (student.match(/[\d\.]+/g) || []).map(Number);
+  return nums.some(n => Math.abs(n - keyNum) <= 3) ? 'correct' : 'incorrect';
+}
+
+function angleClose(studentNorm, keyPart) {
+  const keyNum = parseFloat(keyPart);
+  const nums = (studentNorm.match(/[\d\.]+/g) || []).map(Number);
+  return nums.some(n => Math.abs(n - keyNum) <= 3);
+}
+
+function checkMC(student, correct) {
+  const s = (student||'').trim().toUpperCase().replace(/[^A-D]/g,'');
+  return s === correct ? 'correct' : s ? 'incorrect' : 'blank';
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// STORAGE
+// ══════════════════════════════════════════════════════════════════════════
+const students = []; // [{name, date, file, data, scores, manualScores}]
+let activeIdx = -1;
+
+// ══════════════════════════════════════════════════════════════════════════
+// FILE PARSING
+// ══════════════════════════════════════════════════════════════════════════
+function handleFiles(files) {
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => parseFile(e.target.result, file.name);
+    reader.readAsText(file);
+  });
+}
+
+function parseFile(html, filename) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const data = {};
+
+  // ── Student name / date ──
+  const metaInputs = doc.querySelectorAll('.meta-input');
+  data.name = metaInputs[0]?.value?.trim() || filename.replace('VSEPR_Worksheet_','').replace('.html','').replace(/_/g,' ') || 'Unknown';
+  data.date = metaInputs[1]?.value?.trim() || '';
+  data.period = metaInputs[2]?.value?.trim() || '';
+
+  // ── Section 1: electron counts ──
+  data.s1 = {};
+  MOLECULES.forEach(m => {
+    data.s1[m] = {
+      bond:  doc.getElementById(`s1-${m}-bond`)?.value  || '',
+      lp:    doc.getElementById(`s1-${m}-lp`)?.value    || '',
+      total: doc.getElementById(`s1-${m}-total`)?.value || '',
+    };
+  });
+
+  // ── Section 2: MC + ranking ──
+  // Detect which option (A/B/C/D) by sibling text content
+  data.s2 = {
+    q24: getMCAnswer(doc, 'q24'),
+    q25: getMCAnswer(doc, 'q25'),
+    ranking: getRanking(doc),
+  };
+
+  // ── Sections 3-5: discovery tables ──
+  data.disc = {};
+  Object.keys(DISC_KEY).forEach(mol => {
+    const sec = DISC_KEY[mol].section;
+    data.disc[mol] = {
+      egeo:  doc.getElementById(`${sec}-${mol}-egeo`)?.value  || '',
+      mgeo:  doc.getElementById(`${sec}-${mol}-mgeo`)?.value  || '',
+      angle: doc.getElementById(`${sec}-${mol}-angle`)?.value || '',
+    };
+  });
+
+  // ── Section 6: SO2, SF4 student fill (no IDs — positional) ──
+  data.s6 = { so2: { mgeo:'', angle:'' }, sf4: { mgeo:'', angle:'' } };
+  // Find inputs in the summary table that are NOT readonly and NOT auto-fill
+  const s6inputs = Array.from(doc.querySelectorAll('input[type="text"]:not([readonly])')).filter(el => {
+    // Identify by their closest table context / placeholder
+    const ph = el.getAttribute('placeholder') || '';
+    return ph === '—' || ph === '°';
+  });
+  // SO2 row inputs come before SF4 in DOM order
+  // Filter to those inside the summary table section (sec-card near "Summary")
+  const allFreeInputs = Array.from(doc.querySelectorAll('input[type="text"]:not([readonly]):not([id])'));
+  if (allFreeInputs.length >= 4) {
+    data.s6.so2.mgeo  = allFreeInputs[0]?.value || '';
+    data.s6.so2.angle = allFreeInputs[1]?.value || '';
+    data.s6.sf4.mgeo  = allFreeInputs[2]?.value || '';
+    data.s6.sf4.angle = allFreeInputs[3]?.value || '';
+  }
+
+  // ── Textareas (written questions — positional) ──
+  const tas = Array.from(doc.querySelectorAll('textarea'));
+  // Expected order: Q1.1, Q2.1obs, Q2.2obs, Q3.1, Q4.0, Q4.1, Q4.2, Q5.1, Q5.2, Q6.1, S6reflect1(takeaway), S6reflect2(wondering), S6reflect3(real-world)
+  const taValues = tas.map(t => t.textContent?.trim() || t.value?.trim() || '');
+  data.written = {
+    q11:  taValues[0]  || '',  // Q 1.1
+    q23:  taValues[1]  || '',  // Q 2.3
+    q31:  taValues[2]  || '',  // Q 3.1
+    q41:  taValues[3]  || '',  // Q 4.1
+    q42:  taValues[4]  || '',  // Q 4.2
+    q51:  taValues[5]  || '',  // Q 5.1
+    q52:  taValues[6]  || '',  // Q 5.2
+    q53:  taValues[7]  || '',  // Q 5.3
+    q61:  taValues[8]  || '',  // Q 6.1
+    s6r1: taValues[9]  || '',  // Biggest takeaway
+    s6r2: taValues[10] || '',  // Still wondering
+    s6r3: taValues[11] || '',  // Real-world
+  };
+
+  // ── Canvas drawings — extract via data-mol attribute first, then regex fallback ──
+  // DOMParser strips large base64 src attrs, so we regex the raw HTML string
+  data.drawings = {};
+  // Build a map of mol-id -> dataUrl using data-mol attribute markers in raw HTML
+  const molDrawings = {};
+  // Match: data-mol="h2o" ... src="data:image/png;base64,..."
+  // They appear as <img data-mol="ID" ... src="data:..."> in the submitted file
+  // Use a per-molecule search for reliability
+  MOLECULES.forEach(mol => {
+    // Look for an img tag with data-mol="mol" and capture its src
+    const molRegex = new RegExp('data-mol="' + mol + '"[^>]*src="(data:image\/png;base64,[^"]+)"', 'i');
+    const molRegex2 = new RegExp('src="(data:image\/png;base64,[^"]+)"[^>]*data-mol="' + mol + '"', 'i');
+    const m1 = molRegex.exec(html);
+    const m2 = molRegex2.exec(html);
+    molDrawings[mol] = (m1 || m2)?.[1] || null;
+  });
+
+  // If data-mol attrs found, use them; otherwise fall back to positional regex
+  const foundMolAttrs = MOLECULES.some(mol => molDrawings[mol]);
+  if (foundMolAttrs) {
+    MOLECULES.forEach(mol => { data.drawings[mol] = molDrawings[mol]; });
+  } else {
+    // Fallback: extract all data URLs in order (older submissions without data-mol)
+    const dataUrlRegex = /src="(data:image\/png;base64,[^"]{100,})"/g;
+    const dataUrls = [];
+    let dMatch;
+    while ((dMatch = dataUrlRegex.exec(html)) !== null) {
+      dataUrls.push(dMatch[1]);
+    }
+    MOLECULES.forEach((mol, i) => { data.drawings[mol] = dataUrls[i] || null; });
+  }
+
+  // ── Score ──
+  const scores = autoScore(data);
+  const manualScores = { lewis: {}, q11:null, q31:null, q40:null, q41:null, q42:null, q51:null, q52:null, q61:null };
+  MOLECULES.forEach(m => { manualScores.lewis[m] = null; });
+
+  students.push({ name: data.name, date: data.date, filename, data, scores, manualScores });
+  renderSidebar();
+  selectStudent(students.length - 1);
+}
+
+function getMCAnswer(doc, name) {
+  const labels = doc.querySelectorAll(`input[name="${name}"]`);
+  for (let i = 0; i < labels.length; i++) {
+    if (labels[i].hasAttribute('checked') || labels[i].checked) {
+      // Determine A/B/C/D by index
+      return String.fromCharCode(65 + i);
+    }
+  }
+  return '';
+}
+
+function getRanking(doc) {
+  const rl = doc.getElementById('rankList');
+  if (!rl) return [];
+  return Array.from(rl.querySelectorAll('.rank-item')).map((item, i) => {
+    const numEl = item.querySelector('.rank-num');
+    const pos = numEl ? parseInt(numEl.textContent) : i + 1;
+    const text = item.textContent.replace(/[⠿\d]/g,'').trim();
+    return { pos, text };
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// AUTO SCORING
+// ══════════════════════════════════════════════════════════════════════════
+function autoScore(data) {
+  let s1pts = 0;
+  const s1detail = {};
+  MOLECULES.forEach(mol => {
+    const ans = data.s1[mol];
+    const key = S1_KEY[mol];
+    const allCorrect = ans.bond === key.bond && ans.lp === key.lp && ans.total === key.total;
+    s1detail[mol] = {
+      bond:  ans.bond === key.bond  ? 'correct' : (ans.bond  ? 'incorrect' : 'blank'),
+      lp:    ans.lp   === key.lp   ? 'correct' : (ans.lp    ? 'incorrect' : 'blank'),
+      total: ans.total=== key.total ? 'correct' : (ans.total ? 'incorrect' : 'blank'),
+      pts: allCorrect ? 1 : 0,
+    };
+    if (allCorrect) s1pts++;
+  });
+
+  // S2
+  const q24res = checkMC(data.s2.q24, 'B');
+  const q25res = checkMC(data.s2.q25, 'B');
+  const rankCorrect = checkRanking(data.s2.ranking);
+  const s2pts = (q24res === 'correct' ? 2 : 0) + (q25res === 'correct' ? 2 : 0) + (rankCorrect ? 2 : 0);
+
+  // S3-5 discovery
+  let discPts = 0;
+  const discDetail = {};
+  Object.keys(DISC_KEY).forEach(mol => {
+    const ans = data.disc[mol];
+    const key = DISC_KEY[mol];
+    const mgeoRes   = checkGeo(ans.mgeo, key.mgeo);
+    const angleRes  = checkAngle(ans.angle, key.angle);
+    const mgeoPt  = mgeoRes === 'correct' ? 1 : 0;
+    const anglePt = angleRes === 'correct' ? 1 : 0;
+    discDetail[mol] = { mgeo: mgeoRes, angle: angleRes, pts: mgeoPt + anglePt };
+    discPts += mgeoPt + anglePt;
+  });
+
+  // S6 student fill
+  let s6pts = 0;
+  const s6detail = {};
+  ['so2','sf4'].forEach(mol => {
+    const ans = data.s6[mol];
+    const key = S6_KEY[mol];
+    const mgeoRes  = checkGeo(ans.mgeo, key.mgeo);
+    const angleRes = checkAngle(ans.angle, key.angle);
+    const mgeoPt  = mgeoRes === 'correct' ? 1 : 0;
+    const anglePt = angleRes === 'correct' ? 1 : 0;
+    s6detail[mol] = { mgeo: mgeoRes, angle: angleRes, pts: mgeoPt + anglePt };
+    s6pts += mgeoPt + anglePt;
+  });
+
+  return { s1pts, s1detail, s2pts, q24res, q25res, rankCorrect, discPts, discDetail, s6pts, s6detail };
+}
+
+function checkRanking(ranking) {
+  if (!ranking || ranking.length < 3) return false;
+  // Correct order: LP-LP first, LP-BP second, BP-BP third
+  const sorted = [...ranking].sort((a,b) => a.pos - b.pos);
+  if (sorted.length < 3) return false;
+  const first = sorted[0].text.toLowerCase();
+  const second = sorted[1].text.toLowerCase();
+  const third = sorted[2].text.toLowerCase();
+  return first.includes('lone pair') && first.includes('lone') &&
+         second.includes('lone') && second.includes('bond') &&
+         third.includes('bond') && third.includes('bond');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SIDEBAR RENDER
+// ══════════════════════════════════════════════════════════════════════════
+function renderSidebar() {
+  document.getElementById('studentCount').textContent = students.length;
+  const list = document.getElementById('studentList');
+  list.innerHTML = students.map((s, i) => {
+    const autoScore = s.scores.s1pts + s.scores.s2pts + s.scores.discPts + s.scores.s6pts;
+    const initials = s.name.split(' ').map(w => w[0]||'').join('').slice(0,2).toUpperCase() || '?';
+    const pct = Math.round(autoScore / 40 * 100);
+    const chipClass = autoScore === 0 ? 'na' : pct >= 80 ? 'good' : pct >= 50 ? 'mid' : 'low';
+    return `<div class="student-item ${i === activeIdx ? 'active' : ''}" onclick="selectStudent(${i})">
+      <div class="student-avatar">${initials}</div>
+      <div class="student-info">
+        <div class="student-name">${s.name}</div>
+        <div class="student-date">${s.date || s.filename}</div>
+      </div>
+      <span class="score-chip ${chipClass}">${autoScore}/40</span>
+      <button class="del-btn" onclick="event.stopPropagation();deleteStudent(${i})" title="Remove student">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function selectStudent(i) {
+  activeIdx = i;
+  renderSidebar();
+  renderReport(students[i]);
+}
+
+function deleteStudent(i) {
+  students.splice(i, 1);
+  if (activeIdx >= students.length) activeIdx = students.length - 1;
+  renderSidebar();
+  if (students.length === 0) {
+    activeIdx = -1;
+    document.getElementById('mainPanel').innerHTML = `<div class="welcome">
+      <div class="welcome-icon">🧪</div>
+      <h2>VSEPR Grading Tool</h2>
+      <p>Upload student HTML submissions using the panel on the left. Each file will be parsed and auto-scored instantly.</p>
+    </div>`;
+  } else {
+    renderReport(students[activeIdx]);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// REPORT RENDER
+// ══════════════════════════════════════════════════════════════════════════
+function renderReport(s) {
+  const { data, scores, manualScores } = s;
+  const autoTotal = scores.s1pts + scores.s2pts + scores.discPts + scores.s6pts;
+  const manualTotal = calcManualTotal(s);
+  const grandTotal = autoTotal + manualTotal;
+
+  const initials = s.name.split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
+
+  let html = `<div class="report">
+  <div class="report-header">
+    <div class="report-avatar">${initials}</div>
+    <div class="report-meta">
+      <div class="report-name">${s.name}</div>
+      <div class="report-sub">Period ${data.period || '—'} · Submitted ${data.date || 'date unknown'} · ${s.filename}</div>
+      <div class="score-summary">
+        <span class="score-pill">Section 1: <span>${scores.s1pts}/10</span></span>
+        <span class="score-pill">Section 2: <span>${scores.s2pts}/6</span></span>
+        <span class="score-pill">Sections 3–5: <span>${scores.discPts}/20</span></span>
+        <span class="score-pill">Section 6: <span>${scores.s6pts}/4</span></span>
+        <span class="score-pill">Written: <span>${manualTotal}/22</span></span>
+        <span class="score-pill total">Digital Total: ${grandTotal}/62</span>
+      </div>
+    </div>
+  </div>`;
+
+  // ── S1 ──
+  html += secCard('01', 'Electron Counts', scores.s1pts, 10, renderS1(data, scores));
+
+  // ── S2 ──
+  html += secCard('02', 'Repulsion — MC & Ranking', scores.s2pts, 6, renderS2(data, scores));
+
+  // ── S3-5 ──
+  html += secCard('03–05', 'Discovery Tables', scores.discPts, 20, renderDisc(data, scores));
+
+  // ── S6 ──
+  html += secCard('06', 'Summary Table Student-Fill', scores.s6pts, 4, renderS6(data, scores));
+
+  // ── Written Qs ──
+  html += secCard('Written', 'Written Questions', manualTotal, 22, renderWritten(s), true);
+
+  // ── Lewis Drawings ──
+  html += secCard('Lewis', 'Lewis Structure Drawings', calcLewisTotal(s), 40, renderDrawings(s), true);
+
+  html += '</div>';
+  document.getElementById('mainPanel').innerHTML = html;
+
+  // Open first two sections by default
+  document.querySelectorAll('.sec-card').forEach((c, i) => { if (i < 2) c.classList.add('open'); });
+}
+
+function secCard(num, title, pts, maxPts, bodyHtml, isManual = false) {
+  const pct = maxPts > 0 ? pts / maxPts : 0;
+  const scoreClass = isManual ? 'manual' : pts === maxPts ? 'full' : pts > 0 ? 'part' : 'zero';
+  const scoreLabel = isManual ? `${pts}/${maxPts} ✎` : `${pts}/${maxPts}`;
+  return `<div class="sec-card">
+    <div class="sec-card-head" onclick="this.parentElement.classList.toggle('open')">
+      <span class="sec-num">${num}</span>
+      <span class="sec-title">${title}</span>
+      <span class="sec-pts">${maxPts} pts</span>
+      <span class="sec-score ${scoreClass}">${scoreLabel}</span>
+      <span class="sec-chev">▼</span>
+    </div>
+    <div class="sec-body">${bodyHtml}</div>
+  </div>`;
+}
+
+function statusPill(status) {
+  const map = { correct:'✓', incorrect:'✗', blank:'–', 'correct (approx)':'✓' };
+  const sym = map[status] || '?';
+  return `<span class="pill ${sym}">${sym}</span>`;
+}
+
+// ── Section 1 ──────────────────────────────────────────────────────────
+function renderS1(data, scores) {
+  let html = `<table class="ans-table">
+    <tr><th>Molecule</th><th>Bonding Groups</th><th></th><th>Lone Pairs</th><th></th><th>Total</th><th></th><th>Pts</th></tr>`;
+  MOLECULES.forEach(mol => {
+    const d = scores.s1detail[mol];
+    const k = S1_KEY[mol];
+    const a = data.s1[mol];
+    html += `<tr>
+      <td class="mol-label">${MOL_LABELS[mol]}</td>
+      <td class="student-ans">${a.bond||'—'}</td><td>${statusPill(d.bond)}</td>
+      <td class="student-ans">${a.lp||'—'}</td><td>${statusPill(d.lp)}</td>
+      <td class="student-ans">${a.total||'—'}</td><td>${statusPill(d.total)}</td>
+      <td><strong>${d.pts}/1</strong></td>
+    </tr>`;
+  });
+  html += `</table><div style="font-size:11px;color:var(--muted);margin-top:4px">1 point per molecule — all three fields must be correct</div>`;
+  return html;
+}
+
+// ── Section 2 ──────────────────────────────────────────────────────────
+function renderS2(data, scores) {
+  const rankRows = (data.s2.ranking||[]).sort((a,b) => a.pos - b.pos).map(r =>
+    `<div class="rank-row"><span class="rank-pos">${r.pos}</span><span class="rank-label">${r.text}</span></div>`
+  ).join('');
+  const rankLabel = scores.rankCorrect ? 'Correct order' : (data.s2.ranking?.length ? 'Incorrect order' : 'Not completed');
+  const rankPill = statusPill(scores.rankCorrect ? 'correct' : (data.s2.ranking?.length ? 'incorrect' : 'blank'));
+
+  return `<div class="mc-row">
+    <div class="mc-q">Q 2.4 — Why do electron groups repel?</div>
+    <div class="mc-student">${data.s2.q25 || '—'}</div>
+    ${statusPill(scores.q24res)}
+    <div class="mc-correct">Key: B</div>
+    <strong style="font-size:12px;color:var(--muted)">(2 pts)</strong>
+  </div>
+  <div class="mc-row">
+    <div class="mc-q">Q 2.5 — Which group takes more space?</div>
+    <div class="mc-student">${data.s2.q25 || '—'}</div>
+    ${statusPill(scores.q25res)}
+    <div class="mc-correct">Key: B</div>
+    <strong style="font-size:12px;color:var(--muted)">(2 pts)</strong>
+  </div>
+  <div style="margin-top:12px">
+    <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px">Q 2.6 — Repulsion Ranking &nbsp;${rankPill} &nbsp;<span style="font-size:11px;color:var(--muted)">${rankLabel} (2 pts) · Correct: LP–LP=1, LP–BP=2, BP–BP=3</span></div>
+    <div class="rank-display">${rankRows || '<div style="color:var(--muted);font-size:13px;font-style:italic">Not completed</div>'}</div>
+  </div>`;
+}
+
+// ── Sections 3-5 ──────────────────────────────────────────────────────
+function renderDisc(data, scores) {
+  const sections = [
+    { label: 'Section 3 — 2 & 3 Electron Groups', mols: ['co2','bf3'] },
+    { label: 'Section 4 — 4 Electron Groups',      mols: ['ch4','nh3','h2o'] },
+    { label: 'Section 5 — 5 & 6 Electron Groups',  mols: ['pcl5','clf3','sf6','brf5','xef4'] },
+  ];
+  return sections.map(sec => {
+    let html = `<div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 6px">${sec.label}</div>
+    <table class="ans-table">
+      <tr><th>Molecule</th><th>Mol. Geometry (student)</th><th></th><th>Key</th><th>Angle (student)</th><th></th><th>Key</th><th>Pts</th></tr>`;
+    sec.mols.forEach(mol => {
+      const d = scores.discDetail[mol];
+      const k = DISC_KEY[mol];
+      const a = data.disc[mol];
+      const angleKey = k.angle.includes('and') ? k.angle.replace('and',' & ')+'°' : k.angle+'°';
+      html += `<tr>
+        <td class="mol-label">${MOL_LABELS[mol]}</td>
+        <td class="student-ans">${a.mgeo||'—'}</td>
+        <td>${statusPill(d.mgeo)}</td>
+        <td class="correct-ans">${k.mgeo}</td>
+        <td class="student-ans">${a.angle||'—'}</td>
+        <td>${statusPill(d.angle)}</td>
+        <td class="correct-ans">${angleKey}</td>
+        <td><strong>${d.pts}/2</strong></td>
+      </tr>`;
+    });
+    html += '</table>';
+    return html;
+  }).join('');
+}
+
+// ── Section 6 ──────────────────────────────────────────────────────────
+function renderS6(data, scores) {
+  return `<table class="ans-table">
+    <tr><th>Molecule</th><th>Mol. Geometry (student)</th><th></th><th>Key</th><th>Angle (student)</th><th></th><th>Key</th><th>Pts</th></tr>
+    ${['so2','sf4'].map(mol => {
+      const d = scores.s6detail[mol];
+      const k = S6_KEY[mol];
+      const a = data.s6[mol];
+      const label = mol === 'so2' ? 'SO₂' : 'SF₄';
+      const angleKey = k.angle.includes('and') ? k.angle.replace('and',' & ')+'°' : k.angle+'°';
+      return `<tr>
+        <td class="mol-label">${label}</td>
+        <td class="student-ans">${a.mgeo||'—'}</td>
+        <td>${statusPill(d.mgeo)}</td>
+        <td class="correct-ans">${k.mgeo}</td>
+        <td class="student-ans">${a.angle||'—'}</td>
+        <td>${statusPill(d.angle)}</td>
+        <td class="correct-ans">${angleKey}</td>
+        <td><strong>${d.pts}/2</strong></td>
+      </tr>`;
+    }).join('')}
+  </table>`;
+}
+
+// ── Written Questions ──────────────────────────────────────────────────
+const WRITTEN_QS = [
+  { key:'q11',  label:'Q 1.1 — Why does a double bond count as one group?', max:2 },
+  { key:'q23',  label:'Q 2.3 — Lone pairs vs. bonding pairs: real molecules', max:2 },
+  { key:'q31',  label:'Q 3.1 — Number of Groups and Bond Angle: CO₂ vs BF₃', max:3 },
+  { key:'q41',  label:'Q 4.1 — Same electron geometry, different molecular geometry?', max:3 },
+  { key:'q42',  label:'Q 4.2 — Why does the bond angle shrink? CH₄ → NH₃ → H₂O', max:3 },
+  { key:'q51',  label:'Q 5.1 — Two Different Bond Angles in PCl₅', max:3 },
+  { key:'q52',  label:'Q 5.2 — ClF₃ and the T-Shape', max:3 },
+  { key:'q53',  label:'Q 5.3 — Effect of Lone Pairs on Shape Name: SF₆, BrF₅, XeF₄', max:3 },
+  { key:'q61',  label:'Q 6.1 — In Your Own Words: how to determine molecular geometry', max:3 },
+  { key:'s6r1', label:'Biggest takeaway', max:1 },
+  { key:'s6r2', label:'Still wondering…', max:1 },
+  { key:'s6r3', label:'Real-world connection', max:2 },
+];
+
+function renderWritten(s) {
+  const idx = students.indexOf(s);
+  return WRITTEN_QS.map(q => {
+    const val = s.data.written[q.key] || '';
+    const score = s.manualScores[q.key];
+    return `<div class="written-block">
+      <div class="written-q">${q.label} <span class="max-pts">(max ${q.max} pts)</span></div>
+      <div class="written-ans ${val ? '' : 'empty'}">${val || 'No answer provided'}</div>
+      <div class="manual-score">
+        <label>Score:</label>
+        <input class="pts-input" type="number" min="0" max="${q.max}" value="${score !== null ? score : ''}"
+          placeholder="—" oninput="updateManual(${idx}, '${q.key}', this.value, ${q.max})"/>
+        <span class="max-pts">/ ${q.max}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Lewis Drawings ──────────────────────────────────────────────────────
+function renderDrawings(s) {
+  const idx = students.indexOf(s);
+  const total = calcLewisTotal(s);
+  let html = `<div style="font-size:12px;color:var(--muted);margin-bottom:12px">Score each drawing 0–4 pts. &nbsp;4 = correct atoms, bonds & lone pairs &nbsp;·&nbsp; 2–3 = mostly correct &nbsp;·&nbsp; 0–1 = incomplete/incorrect. &nbsp;<strong>Total: ${total}/40</strong></div>
+  <div class="canvas-grid">`;
+  MOLECULES.forEach(mol => {
+    const imgSrc = s.data.drawings[mol];
+    const score = s.manualScores.lewis[mol];
+    html += `<div class="canvas-card">
+      <div class="canvas-card-head">
+        <span class="canvas-mol">${MOL_LABELS[mol]}</span>
+        <span class="pill ${score === null ? '–' : score >= 3 ? '✓' : score >= 1 ? '?' : '✗'}">${score !== null ? score+'/4' : '—'}</span>
+      </div>
+      ${imgSrc
+        ? `<img class="canvas-img" src="${imgSrc}" alt="Lewis structure for ${mol}"/>`
+        : `<div class="canvas-img blank">No drawing</div>`}
+      <div class="lewis-score-row">
+        <label>Score (0–4):</label>
+        <input class="lewis-pts" type="number" min="0" max="4" value="${score !== null ? score : ''}"
+          placeholder="—" oninput="updateLewis(${idx}, '${mol}', this.value)"/>
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+// ── Manual score updates ───────────────────────────────────────────────
+function updateManual(idx, key, val, max) {
+  const v = val === '' ? null : Math.min(max, Math.max(0, parseInt(val) || 0));
+  students[idx].manualScores[key] = v;
+  refreshHeader(idx);
+  renderSidebar();
+}
+
+function updateLewis(idx, mol, val) {
+  const v = val === '' ? null : Math.min(4, Math.max(0, parseInt(val) || 0));
+  students[idx].manualScores.lewis[mol] = v;
+  refreshHeader(idx);
+  renderSidebar();
+}
+
+function calcManualTotal(s) {
+  return WRITTEN_QS.reduce((sum, q) => sum + (s.manualScores[q.key] ?? 0), 0);
+}
+
+function calcLewisTotal(s) {
+  return Object.values(s.manualScores.lewis).reduce((sum, v) => sum + (v ?? 0), 0);
+}
+
+function refreshHeader(idx) {
+  const s = students[idx];
+  const auto = s.scores.s1pts + s.scores.s2pts + s.scores.discPts + s.scores.s6pts;
+  const written = calcManualTotal(s);
+  const lewis = calcLewisTotal(s);
+  const grand = auto + written;
+  // Update score pills in report header
+  document.querySelectorAll('.score-pill').forEach(pill => {
+    if (pill.classList.contains('total')) pill.innerHTML = `Digital Total: ${grand}/62`;
+    if (pill.textContent.startsWith('Written:')) pill.innerHTML = `Written: <span>${written}/22</span>`;
+  });
+  // Re-render written and lewis section scores
+  document.querySelectorAll('.sec-score.manual').forEach((el, i) => {
+    if (i === 0) el.textContent = `${written}/22 ✎`;
+    if (i === 1) el.textContent = `${lewis}/40 ✎`;
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// DRAG & DROP
+// ══════════════════════════════════════════════════════════════════════════
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('drag-over');
+  handleFiles(e.dataTransfer.files);
+});
+
+// ══════════════════════════════════════════════════════════════════════════
+// EXPORT CSV
+// ══════════════════════════════════════════════════════════════════════════
+function exportCSV() {
+  if (!students.length) { alert('No students loaded yet.'); return; }
+  const headers = ['Name','Period','Date','S1 Counts /10','S2 Repulsion /6','S3-5 Discovery /20','S6 Summary /4','Written Qs /22','Lewis Drawings /40','Auto Total /40','Written+Lewis /62','Grand Total /102'];
+  const rows = students.map(s => {
+    const auto = s.scores.s1pts + s.scores.s2pts + s.scores.discPts + s.scores.s6pts;
+    const written = calcManualTotal(s);
+    const lewis = calcLewisTotal(s);
+    return [
+      `"${s.name}"`, s.data.period || '', s.date || '',
+      s.scores.s1pts, s.scores.s2pts, s.scores.discPts, s.scores.s6pts,
+      written, lewis, auto, written + lewis, auto + written + lewis,
+    ].join(',');
+  });
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'VSEPR_Grades.csv';
+  a.click();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// PRINT
+// ══════════════════════════════════════════════════════════════════════════
+function printReport() {
+  if (activeIdx < 0) { alert('Select a student first.'); return; }
+  document.querySelectorAll('.sec-card').forEach(c => c.classList.add('open'));
+  window.print();
+}
+</script>
+</body>
+</html>
